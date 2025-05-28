@@ -38,7 +38,8 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 
 Se diseñó un diagrama de entidad-relación tipo Chen para representar las entidades principales, sus atributos y relaciones.
 
-🖼️ *(Adjuntá aquí una imagen del DER si tenés)*
+![image](https://github.com/user-attachments/assets/a2db09fa-0b0a-4495-8379-1257d7b8451d)
+
 
 ---
 
@@ -60,7 +61,7 @@ Incluye las tablas: `clientes`, `cuotas`, `pagos`, `tipo_cuota`, `asistencias_cl
 ## 📅 Estado del proyecto
 
 ✅ Modelado completo  
-🛠️ Implementación en desarrollo (si corresponde)
+🛠️ Implementación en desarrollo
 
 ---
 
