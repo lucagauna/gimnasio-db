@@ -7,7 +7,7 @@ USE GimnasioBD;
 GO
 
 -- Tabla: clientes
-CREATE TABLE clientes (
+CREATE TABLE Clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
     dni VARCHAR(20) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE clientes (
 );
 
 -- Tabla: tipo_cuota
-CREATE TABLE tipo_cuota (
+CREATE TABLE Tipo_Cuota (
     id_tipo_cuota INT IDENTITY(1,1) PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
     monto_total MONEY NOT NULL
@@ -36,7 +36,7 @@ CREATE TABLE cuotas (
 );
 
 -- Tabla: pagos
-CREATE TABLE pagos (
+CREATE TABLE Pagos (
     id_pago INT IDENTITY(1,1) PRIMARY KEY,
     fecha_pago DATE NOT NULL,
     monto_pagado MONEY NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE pagos (
 );
 
 -- Tabla: asistencias_clientes
-CREATE TABLE asistencias_clientes (
+CREATE TABLE Asistencias_Clientes (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
@@ -55,14 +55,14 @@ CREATE TABLE asistencias_clientes (
 );
 
 -- Tabla: cargos
-CREATE TABLE cargos (
+CREATE TABLE Cargos (
     id_cargo INT IDENTITY(1,1) PRIMARY KEY,
-    descripcion VARCHAR(100) NOT NULL,
+    nombre_cargo VARCHAR(100) NOT NULL,
     renumeracion MONEY NOT NULL
 );
 
 -- Tabla: empleados
-CREATE TABLE empleados (
+CREATE TABLE Empleados (
     id_empleado INT IDENTITY(1,1) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE empleados (
 );
 
 -- Tabla: asistencias_empleados
-CREATE TABLE asistencias_empleados (
+CREATE TABLE Asistencias_Empleados (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
