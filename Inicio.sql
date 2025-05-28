@@ -78,6 +78,7 @@ CREATE TABLE asistencias_empleados (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
+	horasalida time NULL,
     empleado_id INT NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
