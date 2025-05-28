@@ -1,2 +1,76 @@
-# gimnasio-db
-Sistema de gestión para un gimnasio que administra clientes, asistencias y pagos mediante una base de datos relacional.
+# Sistema de Gestión de Gimnasio - Base de Datos II 🏋️‍♂️
+
+Este repositorio contiene el diseño y modelado de la base de datos para un sistema de gestión de gimnasio, desarrollado como parte del Trabajo Práctico Integrador de la materia **Base de Datos II**.
+
+## 📌 Descripción del sistema
+
+El sistema está orientado a administrar las operaciones clave del gimnasio, incluyendo el control de clientes, registros de asistencia y gestión de pagos.
+
+### 👥 Usuarios del sistema:
+- **Clientes:** registran su asistencia diaria.
+- **Empleados:** validan el ingreso de los clientes.
+- **Dueño del gimnasio:** accede a reportes de asistencia y estado de pagos.
+
+---
+
+## 🗃️ Información almacenada en la base de datos
+
+- **Clientes:** DNI, nombre, apellido, edad, dirección.
+- **Cuotas:** tipo de cuota, fecha de inicio y vencimiento, estado de pago.
+- **Pagos:** fecha, monto pagado, medio de pago.
+- **Asistencias:** registros de fecha y hora tanto de clientes como de empleados.
+- **Empleados:** nombre, apellido, DNI, fecha de ingreso, estado y cargo.
+- **Cargos:** descripción del rol y remuneración.
+- **Tipos de cuota:** descripción y monto.
+
+---
+
+## 🔑 Funcionalidades principales
+
+- Registrar asistencias de clientes y empleados.
+- Verificar si el cliente está habilitado para ingresar según su cuota.
+- Identificar pagos vencidos, pendientes o próximos a vencer.
+- Consultar la actividad y el flujo de personas en el gimnasio.
+
+---
+
+## 🧩 Modelo Entidad-Relación (DER)
+
+Se diseñó un diagrama de entidad-relación tipo Chen para representar las entidades principales, sus atributos y relaciones.
+
+🖼️ *(Adjuntá aquí una imagen del DER si tenés)*
+
+---
+
+## 🧾 Estructura del modelo relacional (formato DBML)
+
+Incluye las tablas: `clientes`, `cuotas`, `pagos`, `tipo_cuota`, `asistencias_clientes`, `asistencias_empleados`, `empleados`, `cargos`, con sus respectivas claves primarias, foráneas y atributos.
+
+*(Opcional: Podés agregar un archivo `.sql` o `.dbml` si querés que otros lo importen)*
+
+---
+
+## ⚙️ Requisitos técnicos
+
+- Motor de base de datos: PostgreSQL / MySQL / SQLite (según el caso)
+- Herramientas recomendadas: [DB Diagram](https://dbdiagram.io/), pgAdmin, DBeaver.
+
+---
+
+## 📅 Estado del proyecto
+
+✅ Modelado completo  
+🛠️ Implementación en desarrollo (si corresponde)
+
+---
+
+## ✍️ Autores
+
+- [Tu Nombre]
+- [Nombres de los integrantes, si es en grupo]
+
+---
+
+## 📄 Licencia
+
+Este proyecto fue desarrollado con fines educativos para la materia **Base de Datos II**. Uso académico.
