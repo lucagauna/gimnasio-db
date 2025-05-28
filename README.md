@@ -36,25 +36,17 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 
 ## 🧩 Modelo Entidad-Relación (DER)
 
-Se diseñó un diagrama de entidad-relación tipo Chen para representar las entidades principales, sus atributos y relaciones.
 
 ![image](https://github.com/user-attachments/assets/a2db09fa-0b0a-4495-8379-1257d7b8451d)
 
 
 ---
 
-## 🧾 Estructura del modelo relacional (formato DBML)
-
-Incluye las tablas: `clientes`, `cuotas`, `pagos`, `tipo_cuota`, `asistencias_clientes`, `asistencias_empleados`, `empleados`, `cargos`, con sus respectivas claves primarias, foráneas y atributos.
-
-*(Opcional: Podés agregar un archivo `.sql` o `.dbml` si querés que otros lo importen)*
-
----
 
 ## ⚙️ Requisitos técnicos
 
 - Motor de base de datos: PostgreSQL / MySQL / SQLite (según el caso)
-- Herramientas recomendadas: [DB Diagram](https://dbdiagram.io/), pgAdmin, DBeaver.
+
 
 ---
 
@@ -67,8 +59,8 @@ Incluye las tablas: `clientes`, `cuotas`, `pagos`, `tipo_cuota`, `asistencias_cl
 
 ## ✍️ Autores
 
-- [Tu Nombre]
-- [Nombres de los integrantes, si es en grupo]
+
+- [@]
 
 ---
 
