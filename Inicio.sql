@@ -58,7 +58,7 @@ CREATE TABLE asistencias_clientes (
 CREATE TABLE cargos (
     id_cargo INT IDENTITY(1,1) PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
-    renumeracion MONEY NOT NULL
+    
 );
 
 -- Tabla: empleados
