@@ -60,9 +60,9 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 ## ✍️ Autores
 
 
-- [Tomas Budy
+- Tomas Budy
 - Luca Gauna
-- Facundo Cuello]
+- Facundo Cuello
 
 ---
 
