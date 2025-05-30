@@ -24,7 +24,7 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 - **Tipos de cuota:** descripción y monto.
 
 ---
-
+s
 ## 🔑 Funcionalidades principales
 
 - Registrar asistencias de clientes y empleados.
