@@ -1,19 +1,35 @@
-
 CREATE DATABASE GimnasioBd;
 
 GO
 
-USE GimnasioBD;
+USE GimnasioBd;
 GO
 
+-- Tabla: Roles
+CREATE TABLE roles (
+	id_rol int PRIMARY KEY,
+	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
+
+);
+-- Tabla: Usuarios
+CREATE TABLE usuarios (
+	id_usuario int IDENTITY(1,1) PRIMARY KEY,
+	dni VARCHAR(20) UNIQUE NOT NULL,
+	contraseña CHAR(64) NOT NULL,
+	rol_id int not null,
+	FOREIGN KEY (rol_id) REFERENCES roles (id_rol)
+
+);
 -- Tabla: clientes
 CREATE TABLE clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
+    usuario_id INT  NOT NULL,
     dni VARCHAR(20) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     edad INT,
-    direccion VARCHAR(255)
+    direccion VARCHAR(255),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );
 
 -- Tabla: tipo_cuota
@@ -82,3 +98,4 @@ CREATE TABLE asistencias_empleados (
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
 GO
+
