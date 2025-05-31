@@ -1,23 +1,41 @@
 
-CREATE DATABASE GimnasioBd;
+CREATE DATABASE GymDb;
 
 GO
 
-USE GimnasioBD;
+USE GymDb;
 GO
 
+-- Tabla: Roles
+CREATE TABLE roles (
+	id_rol int PRIMARY KEY,
+	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
+
+)
+
+-- Tabla: Usuarios
+CREATE TABLE usuarios (
+	id_usuario int IDENTITY(1,1) PRIMARY KEY,
+	dni VARCHAR(20) UNIQUE NOT NULL,
+	contraseña CHAR(64) NOT NULL,
+	rol_id int NOT NULL,
+	FOREIGN KEY (rol_id) REFERENCES roles (id_rol)
+
+	)
 -- Tabla: clientes
-CREATE TABLE Clientes (
+CREATE TABLE clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
+	usuario_id INT  NOT NULL,
     dni VARCHAR(20) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     edad INT,
-    direccion VARCHAR(255)
+    direccion VARCHAR(255),
+	FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );
 
 -- Tabla: tipo_cuota
-CREATE TABLE Tipo_Cuota (
+CREATE TABLE tipo_cuota (
     id_tipo_cuota INT IDENTITY(1,1) PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
     monto_total MONEY NOT NULL
@@ -36,7 +54,7 @@ CREATE TABLE cuotas (
 );
 
 -- Tabla: pagos
-CREATE TABLE Pagos (
+CREATE TABLE pagos (
     id_pago INT IDENTITY(1,1) PRIMARY KEY,
     fecha_pago DATE NOT NULL,
     monto_pagado MONEY NOT NULL,
@@ -46,7 +64,7 @@ CREATE TABLE Pagos (
 );
 
 -- Tabla: asistencias_clientes
-CREATE TABLE Asistencias_Clientes (
+CREATE TABLE asistencias_clientes (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
@@ -55,30 +73,32 @@ CREATE TABLE Asistencias_Clientes (
 );
 
 -- Tabla: cargos
-CREATE TABLE Cargos (
+CREATE TABLE cargos (
     id_cargo INT IDENTITY(1,1) PRIMARY KEY,
-    nombre_cargo VARCHAR(100) NOT NULL,
+    descripcion VARCHAR(100) NOT NULL,
     renumeracion MONEY NOT NULL
 );
 
 -- Tabla: empleados
-CREATE TABLE Empleados (
+CREATE TABLE empleados (
     id_empleado INT IDENTITY(1,1) PRIMARY KEY,
+	usuario_id INT NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     dni VARCHAR(20) NOT NULL,
     fecha_de_inicio DATE NOT NULL,
     estado BIT NOT NULL,
     id_cargo INT NOT NULL,
+	FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo)
 );
 
 -- Tabla: asistencias_empleados
-CREATE TABLE Asistencias_Empleados (
+CREATE TABLE asistencias_empleados (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
-	horasalida time NULL,
+	hora_salida TIME NULL,
     empleado_id INT NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
