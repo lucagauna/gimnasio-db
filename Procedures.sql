@@ -1,4 +1,4 @@
-USE GimnasioBd
+USE Bd_Gym
 
 GO
 
@@ -83,9 +83,9 @@ CREATE OR ALTER PROCEDURE sp_AgregarRoles (@nombre_rol VARCHAR(50)) AS
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_Cargos (@descripcion VARCHAR(100), @remuneracion MONEY) AS
+CREATE OR ALTER PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remuneracion MONEY) AS
 	BEGIN
-		INSERT INTO cargos (descripcion, renumeracion)
+		INSERT INTO cargos (descripcion, remuneracion)
 			VALUES (@descripcion, @remuneracion)
 	END
 
