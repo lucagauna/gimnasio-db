@@ -1,18 +1,17 @@
-
-CREATE DATABASE GymDb;
+CREATE DATABASE GimnasioBd;
 
 GO
 
-USE GymDb;
+USE GimnasioBd;
+
 GO
 
 -- Tabla: Roles
 CREATE TABLE roles (
-	id_rol int PRIMARY KEY,
+    id_rol int IDENTITY(1,1) PRIMARY KEY,
 	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
 
-)
-
+);
 -- Tabla: Usuarios
 CREATE TABLE usuarios (
 	id_usuario int IDENTITY(1,1) PRIMARY KEY,
@@ -26,6 +25,14 @@ CREATE TABLE usuarios (
 CREATE TABLE clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
 	usuario_id INT  NOT NULL,
+	rol_id int not null,
+	FOREIGN KEY (rol_id) REFERENCES roles (id_rol)
+
+);
+-- Tabla: clientes
+CREATE TABLE clientes (
+    id_cliente INT IDENTITY(1,1) PRIMARY KEY,
+    usuario_id INT  NOT NULL,
     dni VARCHAR(20) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
@@ -59,7 +66,11 @@ CREATE TABLE pagos (
     fecha_pago DATE NOT NULL,
     monto_pagado MONEY NOT NULL,
     medio_pago VARCHAR(50),
+    pagado BIT NOT NULL,
+    debe MONEY NOT NULL,
+    cliente_id INT NOT NULL,
     cuota_id INT NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id_cliente),
     FOREIGN KEY (cuota_id) REFERENCES cuotas(id_cuota)
 );
 
@@ -76,7 +87,7 @@ CREATE TABLE asistencias_clientes (
 CREATE TABLE cargos (
     id_cargo INT IDENTITY(1,1) PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
-    renumeracion MONEY NOT NULL
+    remuneracion MONEY NOT NULL
 );
 
 -- Tabla: empleados
@@ -89,8 +100,8 @@ CREATE TABLE empleados (
     fecha_de_inicio DATE NOT NULL,
     estado BIT NOT NULL,
     id_cargo INT NOT NULL,
-	FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario),
-    FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo)
+    FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );
 
 -- Tabla: asistencias_empleados
@@ -103,3 +114,4 @@ CREATE TABLE asistencias_empleados (
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
 GO
+

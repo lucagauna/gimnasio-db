@@ -24,7 +24,7 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 - **Tipos de cuota:** descripción y monto.
 
 ---
-
+s
 ## 🔑 Funcionalidades principales
 
 - Registrar asistencias de clientes y empleados.
@@ -37,7 +37,7 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 ## 🧩 Modelo Entidad-Relación (DER)
 
 
-![image](https://github.com/user-attachments/assets/a2db09fa-0b0a-4495-8379-1257d7b8451d)
+![Bdd Gym](https://github.com/user-attachments/assets/43b0b883-5670-4cb4-8281-4e84cfde4ebc)
 
 
 ---
@@ -60,7 +60,9 @@ El sistema está orientado a administrar las operaciones clave del gimnasio, inc
 ## ✍️ Autores
 
 
-- [@]
+- Tomas Vudi
+- Luca Gauna
+- Facundo Cuello
 
 ---
 
