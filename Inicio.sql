@@ -57,7 +57,11 @@ CREATE TABLE pagos (
     fecha_pago DATE NOT NULL,
     monto_pagado MONEY NOT NULL,
     medio_pago VARCHAR(50),
+    pagado BIT NOT NULL,
+    debe MONEY NOT NULL,
+    cliente_id INT NOT NULL,
     cuota_id INT NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id_cliente),
     FOREIGN KEY (cuota_id) REFERENCES cuotas(id_cuota)
 );
 
@@ -74,7 +78,7 @@ CREATE TABLE asistencias_clientes (
 CREATE TABLE cargos (
     id_cargo INT IDENTITY(1,1) PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
-    renumeracion MONEY NOT NULL
+    remuneracion MONEY NOT NULL
 );
 
 -- Tabla: empleados

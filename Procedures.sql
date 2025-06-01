@@ -54,8 +54,77 @@ CREATE OR ALTER PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARC
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50)) AS
+CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20)) AS
 	BEGIN
+		DECLARE @cliente_id int
+		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
 		DECLARE @cuota_id int
-		SET @cuota_id = 
+		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE estado = 1 AND cliente_id = @cliente_id)
+		DECLARE @pagado BIT
+		DECLARE @debe MONEY
+		IF(@monto_pagado = (SELECT monto_total FROM tipo_cuota WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM cuotas WHERE cliente_id = @cliente_id AND estado = 1))) BEGIN
+			SET @pagado = 1
+			SET @debe = 0
+		END ELSE BEGIN
+			SET @pagado = 0
+			SET @debe = (SELECT monto_total FROM tipo_cuota WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM cuotas WHERE cliente_id = @cliente_id AND estado = 1)) - @monto_pagado
+		END
+		INSERT INTO pagos (fecha_pago, monto_pagado, medio_pago, cuota_id, pagado, cliente_id, debe)
+			VALUES (GETDATE(), @monto_pagado, @medio_pago, @cuota_id, @pagado, @cliente_id, @debe)
+	END
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_AgregarRoles (@nombre_rol VARCHAR(50)) AS
+	BEGIN
+		INSERT INTO roles (nombre_rol)
+			VALUES (@nombre_rol)
+	END
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_Cargos (@descripcion VARCHAR(100), @remuneracion MONEY) AS
+	BEGIN
+		INSERT INTO cargos (descripcion, renumeracion)
+			VALUES (@descripcion, @remuneracion)
+	END
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
+	BEGIN
+		DECLARE @cliente_id int
+		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni) AND estado = 1) 
+		BEGIN
+			SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
+			INSERT INTO asistencias_clientes (fecha, hora, cliente_id)
+				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @cliente_id)
+		END ELSE 
+		BEGIN
+			PRINT('Cliente no pago cuota.')
+		END
+	END
+
+GO
+
+-- Estaria bueno validar esto siempre al inicio del programa...
+CREATE OR ALTER PROCEDURE sp_ValidarCuotas AS
+	BEGIN
+		UPDATE cuotas SET estado = 0 WHERE fecha_vencimiento <= GETDATE()
+	END
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
+	BEGIN
+		DECLARE @empleado_id INT
+		IF EXISTS (SELECT 1 FROM empleados WHERE estado = 1 AND dni = @dni)
+		BEGIN
+			SET @empleado_id = (SELECT id_empleado FROM empleados WHERE @dni = dni)
+			INSERT INTO asistencias_empleados (fecha, hora, empleado_id)
+				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @empleado_id)
+		END ELSE
+		BEGIN
+			PRINT(@dni + ' No es un empleado...')
+		END
 	END
