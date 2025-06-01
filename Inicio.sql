@@ -7,7 +7,7 @@ GO
 
 -- Tabla: Roles
 CREATE TABLE roles (
-	id_rol int PRIMARY KEY,
+	id_rol int IDENTITY(1,1) PRIMARY KEY,
 	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
 
 );
@@ -80,13 +80,15 @@ CREATE TABLE cargos (
 -- Tabla: empleados
 CREATE TABLE empleados (
     id_empleado INT IDENTITY(1,1) PRIMARY KEY,
+    usuario_id INT  NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     dni VARCHAR(20) NOT NULL,
     fecha_de_inicio DATE NOT NULL,
     estado BIT NOT NULL,
     id_cargo INT NOT NULL,
-    FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo)
+    FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );
 
 -- Tabla: asistencias_empleados
