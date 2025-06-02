@@ -29,6 +29,7 @@ CREATE TABLE clientes (
 	FOREIGN KEY (rol_id) REFERENCES roles (id_rol)
 
 );
+-- datos de contacto de cliente (para poder loguear los datos de contacto) o agregar a la tabla clientes
 -- Tabla: clientes
 CREATE TABLE clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
@@ -36,7 +37,7 @@ CREATE TABLE clientes (
     dni VARCHAR(20) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
-    edad INT,
+    edad INT, -- Mejor almacenar la fecha de nacimiento y calcular la edad
     direccion VARCHAR(255),
 	FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );
@@ -79,7 +80,7 @@ CREATE TABLE asistencias_clientes (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
-    cliente_id INT NOT NULL,
+    cliente_id INT NOT NULL, -- NULL (agregar columna id_empleado y rol desde el usuario validando con DNI)
     FOREIGN KEY (cliente_id) REFERENCES clientes(id_cliente)
 );
 

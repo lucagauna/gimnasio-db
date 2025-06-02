@@ -101,7 +101,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @cliente_id)
 		END ELSE 
 		BEGIN
-			PRINT('Cliente no pago cuota.')
+			PRINT('Cliente no pago cuota.') -- Puede ser que el cliente no exista o que no haya pagado la cuota, validar esto
 		END
 	END
 
@@ -128,3 +128,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 			PRINT(@dni + ' No es un empleado...')
 		END
 	END
+
+-- Agregar prodecimiento para un reporte parametrizado.
+-- Agregar Vistas (3).
+-- Agregar Triggers (Insercion, Eliminacion y opcional de Modificacion).
