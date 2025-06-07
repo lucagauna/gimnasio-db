@@ -1,4 +1,4 @@
-USE Bd_Gym
+USE GimnasioBd;
 
 GO
 
@@ -12,12 +12,14 @@ CREATE OR ALTER PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseña CHAR(6
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apellido VARCHAR(100), @edad INT, @direccion VARCHAR(255)) AS
+CREATE OR ALTER PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apellido VARCHAR(100), @fecha_nacimiento DATE, @direccion VARCHAR(255)) AS
 	BEGIN
 		DECLARE @usuario_id INT
 		SET @usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)
-		INSERT INTO clientes (usuario_id, dni, nombre, apellido, edad, direccion)
-			VALUES (@usuario_id, @dni, @nombre, @apellido, @edad, @direccion)
+		DECLARE @edad INT
+		SET @edad = DATEDIFF(YEAR,@fecha_nacimiento, GETDATE())
+		INSERT INTO clientes (usuario_id, dni, nombre, apellido, fecha_nacimiento, edad, direccion)
+			VALUES (@usuario_id, @dni, @nombre, @apellido, @fecha_nacimiento, @edad, @direccion)
 	END
 
 GO
@@ -99,9 +101,12 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 			SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
 			INSERT INTO asistencias_clientes (fecha, hora, cliente_id)
 				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @cliente_id)
-		END ELSE 
+		END ELSE IF (@dni NOT IN (SELECT dni FROM clientes)) 
 		BEGIN
-			PRINT('Cliente no pago cuota.') -- Puede ser que el cliente no exista o que no haya pagado la cuota, validar esto
+			PRINT('Cliente inexistente.')
+		END ELSE
+		BEGIN
+			PRINT('Cliente no pago cuota.') 
 		END
 	END
 
@@ -127,6 +132,13 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 		BEGIN
 			PRINT(@dni + ' No es un empleado...')
 		END
+	END
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_ReporteParametrizadoClientes AS
+	BEGIN
+		SELECT * FROM Clientes
 	END
 
 -- Agregar prodecimiento para un reporte parametrizado.
