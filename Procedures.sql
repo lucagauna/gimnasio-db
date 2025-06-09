@@ -2,17 +2,17 @@ USE GimnasioBd;
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseña CHAR(64), @rol_nombre varchar(8)) AS 
+CREATE PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseña CHAR(64), @rol_nombre varchar(8)) AS 
 	BEGIN
 		DECLARE @id_rol INT
 		SET @id_rol = (SELECT id_rol FROM roles WHERE nombre_rol = @rol_nombre)
-		INSERT INTO usuarios (dni, contraseña, rol_id)
-			VALUES (@dni, @contraseña, @id_rol)
+		INSERT INTO usuarios (dni, contraseña, rol_id, estado)
+			VALUES (@dni, @contraseña, @id_rol, 1)
 	END
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apellido VARCHAR(100), @fecha_nacimiento DATE, @direccion VARCHAR(255)) AS
+CREATE PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apellido VARCHAR(100), @fecha_nacimiento DATE, @direccion VARCHAR(255)) AS
 	BEGIN
 		DECLARE @usuario_id INT
 		SET @usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)
@@ -24,19 +24,19 @@ CREATE OR ALTER PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(10
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarEmpleado(@nombre VARCHAR(100), @apellido VARCHAR(100), @dni VARCHAR(20), @nombre_cargo VARCHAR(25)) AS
+CREATE PROCEDURE sp_AgregarEmpleado(@nombre VARCHAR(100), @apellido VARCHAR(100), @dni VARCHAR(20), @nombre_cargo VARCHAR(25)) AS
 	BEGIN
 		DECLARE @usuario_id INT
 		SET @usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)
 		DECLARE @id_cargo INT
 		SET @id_cargo = (SELECT id_cargo FROM cargos WHERE descripcion = @nombre_cargo)
-		INSERT INTO empleados(usuario_id, nombre, apellido, dni, fecha_de_inicio, estado, id_cargo)
-			VALUES (@usuario_id, @nombre, @apellido, @dni, GETDATE(), 1, @id_cargo)
+		INSERT INTO empleados(usuario_id, nombre, apellido, dni, fecha_de_inicio,  id_cargo)
+			VALUES (@usuario_id, @nombre, @apellido, @dni, GETDATE(), @id_cargo)
 	END
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarTipoCuota (@descripcion VARCHAR(100), @monto_total MONEY) AS
+CREATE PROCEDURE sp_AgregarTipoCuota (@descripcion VARCHAR(100), @monto_total MONEY) AS
 	BEGIN
 		INSERT INTO tipo_cuota (descripcion, monto_total)
 			VALUES (@descripcion, @monto_total)
@@ -44,7 +44,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarTipoCuota (@descripcion VARCHAR(100), @monto
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @id_tipo_cuota INT
 		SET @id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota)
@@ -56,7 +56,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARC
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @cliente_id int
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
@@ -77,7 +77,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCH
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarRoles (@nombre_rol VARCHAR(50)) AS
+CREATE PROCEDURE sp_AgregarRoles (@nombre_rol VARCHAR(50)) AS
 	BEGIN
 		INSERT INTO roles (nombre_rol)
 			VALUES (@nombre_rol)
@@ -85,7 +85,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarRoles (@nombre_rol VARCHAR(50)) AS
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remuneracion MONEY) AS
+CREATE PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remuneracion MONEY) AS
 	BEGIN
 		INSERT INTO cargos (descripcion, remuneracion)
 			VALUES (@descripcion, @remuneracion)
@@ -93,7 +93,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remunera
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @cliente_id int
 		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni) AND estado = 1) 
@@ -113,14 +113,14 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 GO
 
 -- Estaria bueno validar esto siempre al inicio del programa...
-CREATE OR ALTER PROCEDURE sp_ValidarCuotas AS
+CREATE PROCEDURE sp_ValidarCuotas AS
 	BEGIN
 		UPDATE cuotas SET estado = 0 WHERE fecha_vencimiento <= GETDATE()
 	END
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @empleado_id INT
 		IF EXISTS (SELECT 1 FROM empleados WHERE estado = 1 AND dni = @dni)
@@ -136,7 +136,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_ReporteParametrizadoClientes AS
+CREATE PROCEDURE sp_ReporteParametrizadoClientes AS
 	BEGIN
 		SELECT * FROM Clientes
 	END

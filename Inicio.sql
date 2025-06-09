@@ -14,17 +14,16 @@ GO
 CREATE TABLE roles (
     id_rol int IDENTITY(1,1) PRIMARY KEY,
 	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
-
 );
 -- Tabla: Usuarios
 CREATE TABLE usuarios (
 	id_usuario int IDENTITY(1,1) PRIMARY KEY,
 	dni VARCHAR(20) UNIQUE NOT NULL,
 	contraseña CHAR(64) NOT NULL,
-	rol_id int NOT NULL,
+	rol_id INT NOT NULL,
+    estado BIT NOT NULL,
 	FOREIGN KEY (rol_id) REFERENCES roles (id_rol)
-
-	)
+);
 -- datos de contacto de cliente (para poder loguear los datos de contacto) o agregar a la tabla clientes
 -- Tabla: clientes
 CREATE TABLE clientes (
@@ -96,7 +95,6 @@ CREATE TABLE empleados (
     apellido VARCHAR(100) NOT NULL,
     dni VARCHAR(20) NOT NULL,
     fecha_de_inicio DATE NOT NULL,
-    estado BIT NOT NULL,
     id_cargo INT NOT NULL,
     FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
