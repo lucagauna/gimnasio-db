@@ -15,16 +15,16 @@ CREATE TABLE roles (
     id_rol int IDENTITY(1,1) PRIMARY KEY,
 	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
 );
+
 -- Tabla: Usuarios
 CREATE TABLE usuarios (
 	id_usuario int IDENTITY(1,1) PRIMARY KEY,
 	dni VARCHAR(20) UNIQUE NOT NULL,
-	contraseña CHAR(64) NOT NULL,
+	contraseï¿½a CHAR(64) NOT NULL,
 	rol_id INT NOT NULL,
     estado BIT NOT NULL,
 	FOREIGN KEY (rol_id) REFERENCES roles (id_rol)
 );
--- datos de contacto de cliente (para poder loguear los datos de contacto) o agregar a la tabla clientes
 -- Tabla: clientes
 CREATE TABLE clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
@@ -105,8 +105,9 @@ CREATE TABLE asistencias_empleados (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
-	hora_salida TIME NULL,
+	hora_salida TIME NULL, --PARA QUE TENEMOS HORA_SALIDA? NO CONVENDIRA BORRARLA?
     empleado_id INT NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
+
 GO

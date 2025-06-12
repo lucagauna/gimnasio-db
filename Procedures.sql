@@ -2,12 +2,12 @@ USE GimnasioBd;
 
 GO
 
-CREATE PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseña CHAR(64), @rol_nombre varchar(8)) AS 
+CREATE PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseï¿½a CHAR(64), @rol_nombre varchar(8)) AS 
 	BEGIN
 		DECLARE @id_rol INT
 		SET @id_rol = (SELECT id_rol FROM roles WHERE nombre_rol = @rol_nombre)
-		INSERT INTO usuarios (dni, contraseña, rol_id, estado)
-			VALUES (@dni, @contraseña, @id_rol, 1)
+		INSERT INTO usuarios (dni, contraseï¿½a, rol_id, estado)
+			VALUES (@dni, @contraseï¿½a, @id_rol, 1)
 	END
 
 GO
@@ -51,25 +51,29 @@ CREATE PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) 
 		DECLARE @cliente_id INT
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
 		INSERT INTO cuotas(id_tipo_cuota, fecha_inicio, fecha_vencimiento, estado, cliente_id)
-			VALUES (@id_tipo_cuota, GETDATE(), DATEADD(MONTH, 1, GETDATE()), 1, @cliente_id)
+			VALUES (@id_tipo_cuota, GETDATE(), DATEADD(MONTH, 1, GETDATE()), 0, @cliente_id)
+			---LAS CUOTAS PUEDEN DURAR 1 MES, 1 DIA, 1 SEMANA, ETC. VERIFICAR ESTO. COMO PUEDO SABER SI TENGO QUE AGREGAR UN MES, DIA O SEMANA?
 	END
 
 GO
 
-CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
 	BEGIN
+	-- IMAGINATE QUE SE AGREGA UN PAGO DE ALGUIEN QUE DEBIA PLATA. COMO LO HAGO? DEBERIA DE AGREGAR UN IF QUE VALIDE SI YA PAGO LA CUOTA Y QUEDO DEBIENDO... ENTONCES SE TENDRIA QUE HACER UN UPDATE Y QUEDAR PAGADO EN 1 Y DEBE EN 0
 		DECLARE @cliente_id int
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
 		DECLARE @cuota_id int
-		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE estado = 1 AND cliente_id = @cliente_id)
+		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota) AND cliente_id = @cliente_id)
 		DECLARE @pagado BIT
 		DECLARE @debe MONEY
-		IF(@monto_pagado = (SELECT monto_total FROM tipo_cuota WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM cuotas WHERE cliente_id = @cliente_id AND estado = 1))) BEGIN
+		IF(@monto_pagado = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota)) BEGIN
 			SET @pagado = 1
 			SET @debe = 0
+			UPDATE cuotas SET estado = 1
+				WHERE cliente_id = @cliente_id
 		END ELSE BEGIN
 			SET @pagado = 0
-			SET @debe = (SELECT monto_total FROM tipo_cuota WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM cuotas WHERE cliente_id = @cliente_id AND estado = 1)) - @monto_pagado
+			SET @debe = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota) - @monto_pagado
 		END
 		INSERT INTO pagos (fecha_pago, monto_pagado, medio_pago, cuota_id, pagado, cliente_id, debe)
 			VALUES (GETDATE(), @monto_pagado, @medio_pago, @cuota_id, @pagado, @cliente_id, @debe)
