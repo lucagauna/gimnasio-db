@@ -118,30 +118,36 @@ CREATE OR ALTER TRIGGER tr_EliminarCuotas ON cuotas
 GO
 
 CREATE OR ALTER TRIGGER tr_AgregarPagos ON pagos
-	INSTEAD OF INSERT AS
+	AFTER INSERT AS
 	BEGIN
 		IF ((SELECT estado FROM cuotas WHERE cliente_id IN (SELECT cliente_id FROM inserted)) = 1)
 		BEGIN
 			RAISERROR('Cliente ya pago la cuota...', 16, 1)
+			ROLLBACK TRANSACTION
 			RETURN
 		END
 		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id IN (SELECT cliente_id FROM inserted) AND id_cuota IN (SELECT cuota_id FROM inserted))
 		BEGIN
-			INSERT INTO pagos (fecha_pago, monto_pagado, medio_pago, pagado, debe, cliente_id, cuota_id)
-				SELECT fecha_pago, monto_pagado, medio_pago, pagado, debe, cliente_id, cuota_id FROM inserted
+			IF ((SELECT pagado FROM inserted) = 1)
+			BEGIN
+				UPDATE cuotas SET estado = 1
+					WHERE cliente_id = (SELECT cliente_id FROM inserted)
+			END
 		END ELSE IF EXISTS (SELECT 1 FROM clientes WHERE id_cliente IN (SELECT cliente_id FROM inserted))
 		BEGIN 
 			RAISERROR('No existe cliente con una cuota ingresada...', 16, 1)
+			ROLLBACK TRANSACTION
 		END ELSE
 		BEGIN
 			RAISERROR('No existe cliente ingresado...', 16, 1)
+			ROLLBACK TRANSACTION
 		END
 	END
 
 DELETE FROM pagos
 SELECT * FROM cuotas
 SELECT * FROM pagos
-EXEC sp_AgregarPagos 50, 'Efectivo', '46286381', 'Mensual' --Esto de poner 'Mensual' es medio raro, habria que chequearlo...
+EXEC sp_AgregarPagos 30, 'Debito', '46286381', 'Mensual' --Esto de poner 'Mensual' es medio raro, habria que chequearlo...
 
 GO
 

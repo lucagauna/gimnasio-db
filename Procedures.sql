@@ -50,34 +50,51 @@ CREATE PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) 
 		SET @id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota)
 		DECLARE @cliente_id INT
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
+		DECLARE @fecha_vencimiento DATE
+		IF(LOWER(@nombre_cuota) = 'mensual')
+		BEGIN
+			SET @fecha_vencimiento = DATEADD(MONTH, 1, GETDATE())
+		END ELSE IF (LOWER(@nombre_cuota) = 'diaria')
+		BEGIN
+			SET @fecha_vencimiento = DATEADD(WEEK, 1, GETDATE())
+		END ELSE IF (LOWER(@nombre_cuota) = 'semanal')
+		BEGIN
+			SET @fecha_vencimiento = DATEADD(DAY, 1, GETDATE())
+		END
 		INSERT INTO cuotas(id_tipo_cuota, fecha_inicio, fecha_vencimiento, estado, cliente_id)
-			VALUES (@id_tipo_cuota, GETDATE(), DATEADD(MONTH, 1, GETDATE()), 0, @cliente_id)
-			---LAS CUOTAS PUEDEN DURAR 1 MES, 1 DIA, 1 SEMANA, ETC. VERIFICAR ESTO. COMO PUEDO SABER SI TENGO QUE AGREGAR UN MES, DIA O SEMANA?
+			VALUES (@id_tipo_cuota, GETDATE(), @fecha_vencimiento, 0, @cliente_id)
 	END
 
 GO
 
-CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
+CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
 	BEGIN
-	-- IMAGINATE QUE SE AGREGA UN PAGO DE ALGUIEN QUE DEBIA PLATA. COMO LO HAGO? DEBERIA DE AGREGAR UN IF QUE VALIDE SI YA PAGO LA CUOTA Y QUEDO DEBIENDO... ENTONCES SE TENDRIA QUE HACER UN UPDATE Y QUEDAR PAGADO EN 1 Y DEBE EN 0
 		DECLARE @cliente_id int
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
 		DECLARE @cuota_id int
 		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota) AND cliente_id = @cliente_id)
 		DECLARE @pagado BIT
 		DECLARE @debe MONEY
-		IF(@monto_pagado = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota)) BEGIN
+		SET @debe = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota) - @monto_pagado
+		IF EXISTS(SELECT 1 FROM pagos WHERE cuota_id = @cuota_id AND pagado = 0)
+		BEGIN
+			SET @debe = (SELECT TOP 1 debe FROM pagos WHERE cuota_id = @cuota_id ORDER BY fecha_pago DESC) - @monto_pagado
+		END 
+		IF(@debe = 0) 
+		BEGIN
 			SET @pagado = 1
-			SET @debe = 0
-			UPDATE cuotas SET estado = 1
-				WHERE cliente_id = @cliente_id
-		END ELSE BEGIN
+		END ELSE
+		BEGIN
 			SET @pagado = 0
-			SET @debe = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota) - @monto_pagado
 		END
 		INSERT INTO pagos (fecha_pago, monto_pagado, medio_pago, cuota_id, pagado, cliente_id, debe)
 			VALUES (GETDATE(), @monto_pagado, @medio_pago, @cuota_id, @pagado, @cliente_id, @debe)
 	END
+
+DELETE FROM pagos
+SELECT * FROM cuotas
+SELECT * FROM pagos
+EXEC sp_AgregarPagos 10, 'Debito', '46286378', 'Mensual'
 
 GO
 
@@ -94,7 +111,6 @@ CREATE PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remuneracion MONE
 		INSERT INTO cargos (descripcion, remuneracion)
 			VALUES (@descripcion, @remuneracion)
 	END
-
 GO
 
 CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
@@ -114,6 +130,8 @@ CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 		END
 	END
 
+EXEC sp_AgregarAsistenciaCliente '46286381'
+
 GO
 
 -- Estaria bueno validar esto siempre al inicio del programa...
@@ -127,7 +145,7 @@ GO
 CREATE PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @empleado_id INT
-		IF EXISTS (SELECT 1 FROM empleados WHERE estado = 1 AND dni = @dni)
+		IF EXISTS (SELECT 1 FROM empleados WHERE (SELECT estado FROM usuarios WHERE dni = @dni) = 1 AND dni = @dni)
 		BEGIN
 			SET @empleado_id = (SELECT id_empleado FROM empleados WHERE @dni = dni)
 			INSERT INTO asistencias_empleados (fecha, hora, empleado_id)

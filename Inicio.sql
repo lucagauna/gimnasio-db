@@ -43,7 +43,8 @@ CREATE TABLE clientes (
 CREATE TABLE tipo_cuota (
     id_tipo_cuota INT IDENTITY(1,1) PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
-    monto_total MONEY NOT NULL
+    monto_total MONEY NOT NULL,
+    duracion INT NOT NULL
 );
 
 -- Tabla: cuotas
@@ -61,7 +62,7 @@ CREATE TABLE cuotas (
 -- Tabla: pagos
 CREATE TABLE pagos (
     id_pago INT IDENTITY(1,1) PRIMARY KEY,
-    fecha_pago DATE NOT NULL,
+    fecha_pago DATETIME NOT NULL,
     monto_pagado MONEY NOT NULL,
     medio_pago VARCHAR(50),
     pagado BIT NOT NULL,
@@ -106,7 +107,7 @@ CREATE TABLE asistencias_empleados (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
-	hora_salida TIME NULL, --PARA QUE TENEMOS HORA_SALIDA? NO CONVENDIRA BORRARLA?
+    --PARA QUE TENEMOS HORA_SALIDA? NO CONVENDIRA BORRARLA?
     empleado_id INT NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
