@@ -140,10 +140,39 @@ CREATE PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 
 GO
 
-CREATE PROCEDURE sp_ReporteParametrizadoClientes AS
-	BEGIN
-		SELECT * FROM Clientes
-	END
+CREATE or ALTER PROCEDURE sp_ReporteParametrizadoClientes 
+
+    @nombre NVARCHAR(50) = NULL,
+    @apellido NVARCHAR(50) = NULL,
+    @dni VARCHAR(20) = NULL,
+    @edad INT = NULL,
+    @edad_min INT = NULL,
+    @edad_max INT = NULL,
+    @direccion NVARCHAR(100) = NULL,
+    @fecha_nacimiento DATE = NULL,
+    @tiene_cuota_activa BIT = NULL  
+AS
+BEGIN
+    SELECT c.*
+    FROM clientes c
+    WHERE (@nombre IS NULL OR c.nombre LIKE '%' + @nombre + '%')
+      AND (@apellido IS NULL OR c.apellido LIKE '%' + @apellido + '%')
+      AND (@dni IS NULL OR c.dni = @dni)
+      AND (@edad IS NULL OR c.edad = @edad)
+      AND (@edad_min IS NULL OR c.edad >= @edad_min)
+      AND (@edad_max IS NULL OR c.edad <= @edad_max)
+      AND (@direccion IS NULL OR c.direccion LIKE '%' + @direccion + '%')
+      AND (@fecha_nacimiento IS NULL OR c.fecha_nacimiento = @fecha_nacimiento)
+      AND (
+          @tiene_cuota_activa IS NULL
+          OR @tiene_cuota_activa = 
+             (SELECT CASE WHEN EXISTS (
+                 SELECT 1 
+                 FROM cuotas cu 
+                 WHERE cu.cliente_id = c.id_cliente AND cu.estado = 1
+             ) THEN 1 ELSE 0 END)
+      )
+END
 
 -- Agregar prodecimiento para un reporte parametrizado.
 -- Agregar Vistas (3).
