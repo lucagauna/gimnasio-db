@@ -51,7 +51,8 @@ SELECT
     c.remuneracion
 FROM empleados e
 JOIN cargos c ON e.id_cargo = c.id_cargo
-WHERE e.estado = 1;
+JOIN usuarios u ON e.usuario_id = u.id_usuario
+WHERE u.estado = 1;
 
 GO 
 
@@ -63,3 +64,18 @@ SELECT
   a.hora AS hora_entrada
 FROM empleados e
 JOIN asistencias_empleados a ON e.id_empleado = a.empleado_id;
+
+go
+
+CREATE VIEW vw_HistorialPagosCliente AS
+SELECT
+    c.id_cliente,
+    c.nombre,
+    c.apellido,
+    p.fecha_pago,
+    p.monto_pagado,
+    p.medio_pago,
+    p.pagado,
+    p.debe
+FROM clientes c
+JOIN pagos p ON c.id_cliente = p.cliente_id;
