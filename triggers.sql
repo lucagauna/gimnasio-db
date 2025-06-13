@@ -24,27 +24,48 @@ CREATE OR ALTER TRIGGER tr_EliminarUsuario ON usuarios
 GO
 
 CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
-	INSTEAD OF INSERT AS
+	INSTEAD OF INSERT
+	AS
 	BEGIN
-		IF EXISTS (SELECT 1 FROM clientes WHERE dni IN (SELECT dni FROM inserted))
-		BEGIN
-			RAISERROR('El usuario ingresado ya es un cliente...', 16, 1)
-			RETURN
-		END
-		IF EXISTS (SELECT 1 FROM usuarios WHERE dni IN (SELECT dni FROM inserted) AND rol_id IN (SELECT id_rol FROM roles WHERE nombre_rol = 'Cliente')) -- ESTO ES RARO TMB, QUE PASA SI TENDRIA OTRO NOMBRE????
-		BEGIN
-			INSERT INTO clientes (usuario_id, dni, nombre, apellido, fecha_nacimiento, edad, direccion)
-				SELECT usuario_id, dni, nombre, apellido, fecha_nacimiento, edad, direccion FROM inserted
-		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE dni IN (SELECT dni FROM inserted))
-		BEGIN
-			RAISERROR('El usuario ingresado no es un cliente...', 16, 1)
-		END ELSE
-		BEGIN
-			RAISERROR('El usuario ingresado no existe...', 16, 1)
-		END
-	END
+	  BEGIN TRANSACTION
+
+	  IF EXISTS (SELECT 1 FROM clientes WHERE dni IN (SELECT dni FROM inserted))
+    BEGIN
+		  RAISERROR('El usuario ingresado ya es un cliente...', 16, 1)
+		  ROLLBACK                                                                                
+        RETURN
+    END
+
+		IF EXISTS (
+        SELECT 1 
+        FROM usuarios 
+			WHERE dni IN (SELECT dni FROM inserted)
+			  AND rol_id IN (SELECT id_rol FROM roles WHERE nombre_rol = 'Cliente')
+    )
+    BEGIN
+        INSERT INTO clientes (usuario_id, dni, nombre, apellido, fecha_nacimiento, edad, direccion)  
+            SELECT usuario_id, dni, nombre, apellido, fecha_nacimiento, edad, direccion 
+            FROM inserted
+        COMMIT
+		 END
+			ELSE IF EXISTS (
+		  SELECT 1 
+		  FROM usuarios 
+		  WHERE dni IN (SELECT dni FROM inserted)
+    )
+    BEGIN
+        RAISERROR('El usuario ingresado no es un cliente...', 16, 1)
+        ROLLBACK
+    END
+    ELSE
+    BEGIN
+        RAISERROR('El usuario ingresado no existe...', 16, 1)
+        ROLLBACK
+    END
+END
 
 GO
+
 
 CREATE OR ALTER TRIGGER tr_EliminarCliente ON clientes
 	INSTEAD OF DELETE AS
