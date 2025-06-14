@@ -30,7 +30,6 @@ CREATE TABLE usuarios (
 CREATE TABLE clientes (
     id_cliente INT IDENTITY(1,1) PRIMARY KEY,
     usuario_id INT  NOT NULL,
-    dni VARCHAR(20) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
@@ -95,7 +94,6 @@ CREATE TABLE empleados (
 	usuario_id INT NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
-    dni VARCHAR(20) NOT NULL,
     fecha_de_inicio DATE NOT NULL,
     id_cargo INT NOT NULL,
     FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo),

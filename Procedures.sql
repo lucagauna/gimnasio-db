@@ -18,8 +18,8 @@ CREATE PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apel
 		SET @usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)
 		DECLARE @edad INT
 		SET @edad = DATEDIFF(YEAR,@fecha_nacimiento, GETDATE())
-		INSERT INTO clientes (usuario_id, dni, nombre, apellido, fecha_nacimiento, edad, direccion)
-			VALUES (@usuario_id, @dni, @nombre, @apellido, @fecha_nacimiento, @edad, @direccion)
+		INSERT INTO clientes (usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion)
+			VALUES (@usuario_id, @nombre, @apellido, @fecha_nacimiento, @edad, @direccion)
 	END
 
 GO
@@ -30,8 +30,8 @@ CREATE PROCEDURE sp_AgregarEmpleado(@nombre VARCHAR(100), @apellido VARCHAR(100)
 		SET @usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)
 		DECLARE @id_cargo INT
 		SET @id_cargo = (SELECT id_cargo FROM cargos WHERE descripcion = @nombre_cargo)
-		INSERT INTO empleados(usuario_id, nombre, apellido, dni, fecha_de_inicio,  id_cargo)
-			VALUES (@usuario_id, @nombre, @apellido, @dni, GETDATE(), @id_cargo)
+		INSERT INTO empleados(usuario_id, nombre, apellido,  fecha_de_inicio,  id_cargo)
+			VALUES (@usuario_id, @nombre, @apellido, GETDATE(), @id_cargo)
 	END
 
 GO
@@ -49,28 +49,19 @@ CREATE PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) 
 		DECLARE @id_tipo_cuota INT
 		SET @id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota)
 		DECLARE @cliente_id INT
-		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
+		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 		DECLARE @fecha_vencimiento DATE
-		IF(LOWER(@nombre_cuota) = 'mensual')
-		BEGIN
-			SET @fecha_vencimiento = DATEADD(MONTH, 1, GETDATE())
-		END ELSE IF (LOWER(@nombre_cuota) = 'diaria')
-		BEGIN
-			SET @fecha_vencimiento = DATEADD(WEEK, 1, GETDATE())
-		END ELSE IF (LOWER(@nombre_cuota) = 'semanal')
-		BEGIN
-			SET @fecha_vencimiento = DATEADD(DAY, 1, GETDATE())
-		END
+		SET @fecha_vencimiento = DATEADD(DAY, (SELECT duracion FROM tipo_cuota WHERE id_tipo_cuota = @id_tipo_cuota), GETDATE())
 		INSERT INTO cuotas(id_tipo_cuota, fecha_inicio, fecha_vencimiento, estado, cliente_id)
 			VALUES (@id_tipo_cuota, GETDATE(), @fecha_vencimiento, 0, @cliente_id)
 	END
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
+CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
 	BEGIN
 		DECLARE @cliente_id int
-		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
+		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 		DECLARE @cuota_id int
 		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota) AND cliente_id = @cliente_id)
 		DECLARE @pagado BIT
@@ -91,11 +82,6 @@ CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCH
 			VALUES (GETDATE(), @monto_pagado, @medio_pago, @cuota_id, @pagado, @cliente_id, @debe)
 	END
 
-DELETE FROM pagos
-SELECT * FROM cuotas
-SELECT * FROM pagos
-EXEC sp_AgregarPagos 10, 'Debito', '46286378', 'Mensual'
-
 GO
 
 CREATE PROCEDURE sp_AgregarRoles (@nombre_rol VARCHAR(50)) AS
@@ -111,17 +97,18 @@ CREATE PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remuneracion MONE
 		INSERT INTO cargos (descripcion, remuneracion)
 			VALUES (@descripcion, @remuneracion)
 	END
+
 GO
 
-CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
+CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @cliente_id int
-		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni) AND estado = 1) 
+		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)) AND estado = 1) 
 		BEGIN
-			SET @cliente_id = (SELECT id_cliente FROM clientes WHERE dni = @dni)
+			SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 			INSERT INTO asistencias_clientes (fecha, hora, cliente_id)
 				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @cliente_id)
-		END ELSE IF (@dni NOT IN (SELECT dni FROM clientes)) 
+		END ELSE IF (@dni NOT IN (SELECT dni FROM usuarios WHERE id_usuario IN (SELECT usuario_id FROM clientes)))
 		BEGIN
 			PRINT('Cliente inexistente.')
 		END ELSE
@@ -129,8 +116,6 @@ CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 			PRINT('Cliente no pago cuota.') 
 		END
 	END
-
-EXEC sp_AgregarAsistenciaCliente '46286381'
 
 GO
 
@@ -145,9 +130,9 @@ GO
 CREATE PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @empleado_id INT
-		IF EXISTS (SELECT 1 FROM empleados WHERE (SELECT estado FROM usuarios WHERE dni = @dni) = 1 AND dni = @dni)
+		IF EXISTS (SELECT 1 FROM empleados WHERE (SELECT estado FROM usuarios WHERE dni = @dni) = 1 AND usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 		BEGIN
-			SET @empleado_id = (SELECT id_empleado FROM empleados WHERE @dni = dni)
+			SET @empleado_id = (SELECT id_empleado FROM empleados WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 			INSERT INTO asistencias_empleados (fecha, hora, empleado_id)
 				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @empleado_id)
 		END ELSE
@@ -162,7 +147,6 @@ CREATE or ALTER PROCEDURE sp_ReporteParametrizadoClientes
 
     @nombre NVARCHAR(50) = NULL,
     @apellido NVARCHAR(50) = NULL,
-    @dni VARCHAR(20) = NULL,
     @edad INT = NULL,
     @edad_min INT = NULL,
     @edad_max INT = NULL,
@@ -175,7 +159,6 @@ BEGIN
     FROM clientes c
     WHERE (@nombre IS NULL OR c.nombre LIKE '%' + @nombre + '%')
       AND (@apellido IS NULL OR c.apellido LIKE '%' + @apellido + '%')
-      AND (@dni IS NULL OR c.dni = @dni)
       AND (@edad IS NULL OR c.edad = @edad)
       AND (@edad_min IS NULL OR c.edad >= @edad_min)
       AND (@edad_max IS NULL OR c.edad <= @edad_max)
@@ -192,6 +175,4 @@ BEGIN
       )
 END
 
--- Agregar prodecimiento para un reporte parametrizado.
--- Agregar Vistas (3).
--- Agregar Triggers (Insercion, Eliminacion y opcional de Modificacion).
+--probar
