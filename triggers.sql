@@ -59,13 +59,17 @@ GO
 -- Modificar Cliente
 CREATE OR ALTER TRIGGER tr_ModificarClientes ON clientes
 	INSTEAD OF UPDATE AS
+	IF EXISTS (SELECT 1 FROM clientes WHERE usuario_id IN (SELECT usuario_id FROM inserted))
+		BEGIN
+			RAISERROR('El usuario que deseas modificar ya esta en la tabla.', 16, 1)
+			RETURN
 	BEGIN
 	IF EXISTS (SELECT 1 FROM clientes c join inserted i on c.dni = i.dni and c.id_cliente <> i.id_cliente) -- <> --> es !=
 	BEGIN
 		RAISERROR('Ya hay un usuario registrado con este DNI', 16, 1);
 		RETURN;
 		END
-	ELSE IF EXISTS (SELECT 1 FROM clientes c join inserted i on
+	
 	UPDATE c
 	SET
 	c.usuario_id = i.usuario_id,
@@ -76,7 +80,9 @@ CREATE OR ALTER TRIGGER tr_ModificarClientes ON clientes
 	c.edad = i.edad
 	FROM clientes c
 	join inserted i ON c.id_cliente = i.id_cliente
-END;
+END
+
+END
 		
 
 GO
