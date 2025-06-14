@@ -107,7 +107,6 @@ CREATE TABLE asistencias_empleados (
     id_asistencia INT IDENTITY(1,1) PRIMARY KEY,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
-    --PARA QUE TENEMOS HORA_SALIDA? NO CONVENDIRA BORRARLA?
     empleado_id INT NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id_empleado)
 );
