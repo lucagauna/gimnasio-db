@@ -248,6 +248,46 @@ BEGIN
 GO
 
 
+CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
+	INSTEAD OF INSERT AS
+	BEGIN
+		
+
+    IF EXISTS (
+        SELECT 1 FROM inserted WHERE edad < 1 OR edad > 100
+    )
+    BEGIN
+        RAISERROR('La fecha de nacimiento ingresada es incoherente.', 16, 1);
+        RETURN;
+    END
+
+   
+    IF EXISTS ( SELECT 1 FROM inserted i JOIN clientes c ON i.usuario_id = c.usuario_id)
+    BEGIN
+        RAISERROR('El usuario ingresado ya está registrado como cliente', 16, 1);
+        RETURN;
+    END
+
+   
+    IF EXISTS (SELECT 1 FROM inserted i WHERE NOT EXISTS (SELECT 1 FROM usuarios u WHERE u.id_usuario = i.usuario_id) )
+    BEGIN
+        RAISERROR('El usuario no existe.', 16, 1);
+        RETURN;
+    END
+
+   
+    IF EXISTS (SELECT 1 FROM inserted i  JOIN usuarios u ON i.usuario_id = u.id_usuario WHERE u.rol_id NOT IN (SELECT id_rol FROM roles WHERE nombre_rol = 'cliente') )
+ 
+  
+    BEGIN
+        RAISERROR('El usuario no tiene el rol de cliente', 16, 1);
+        RETURN;
+    END
+
+	INSERT INTO clientes (usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion)
+   		SELECT usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion
+   			FROM inserted;
+END;
 
 
 			
