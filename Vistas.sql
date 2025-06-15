@@ -31,6 +31,28 @@ JOIN usuarios u ON c.usuario_id = u.id_usuario;
 
 GO
 
+CREATE or ALTER VIEW  vw_AsistenciasEmpleados AS
+	SELECT 
+	e.id_empleado,
+	u.dni,
+	e.nombre,
+	e.apellido,
+	c.descripcion,
+	a.fecha,
+	a.hora as Hora_Entrada
+	FROM empleados e
+	JOIN asistencias_empleados a ON e.id_empleado = a.empleado_id
+	JOIN usuarios u ON e.id_empleado = u.id_usuario
+	JOIN cargos c ON e.id_cargo = c.id_cargo
+
+
+
+GO
+
+
+
+GO
+
 CREATE VIEW vw_EstadoPagosClientes AS
 SELECT
     u.dni,
@@ -65,17 +87,6 @@ WHERE u.estado = 1;
 
 GO 
 
-CREATE VIEW vw_AsistenciaEmpleados AS
-SELECT
-    e.id_empleado,
-    e.nombre,
-    e.apellido,
-    a.fecha,								-- Asistencia Empleados.
-  a.hora AS hora_entrada
-FROM empleados e
-JOIN asistencias_empleados a ON e.id_empleado = a.empleado_id;
-
-go
 
 CREATE VIEW vw_HistorialPagosCliente AS
 SELECT
