@@ -24,6 +24,8 @@ CREATE PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apel
 
 GO
 
+
+
 CREATE PROCEDURE sp_AgregarEmpleado(@nombre VARCHAR(100), @apellido VARCHAR(100), @dni VARCHAR(20), @nombre_cargo VARCHAR(25)) AS
 	BEGIN
 		DECLARE @usuario_id INT
@@ -119,6 +121,8 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 
 GO
 
+
+
 -- Estaria bueno validar esto siempre al inicio del programa...
 CREATE PROCEDURE sp_ValidarCuotas AS
 	BEGIN
@@ -127,23 +131,48 @@ CREATE PROCEDURE sp_ValidarCuotas AS
 
 GO
 
-CREATE PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
+CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @empleado_id INT
-		IF EXISTS (SELECT 1 FROM empleados WHERE (SELECT estado FROM usuarios WHERE dni = @dni) = 1 AND usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
-		BEGIN
-			SET @empleado_id = (SELECT id_empleado FROM empleados WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
-			INSERT INTO asistencias_empleados (fecha, hora, empleado_id)
-				VALUES (GETDATE(), CAST(GETDATE() AS TIME), @empleado_id)
-		END ELSE
-		BEGIN
-			PRINT(@dni + ' No es un empleado...')
-		END
-	END
+		DECLARE @estado INT
+		DECLARE @usuario_id INT
+			SELECT @usuario_id = id_usuario, @estado = estado FROM usuarios WHERE dni = @dni
+				IF @usuario_id IS NULL
+					BEGIN 
+						RAISERROR('El DNI no existe en la tabla de usuarios',16,1)
+						RETURN
+						END
+					
+				IF @estado <> 1 
+					BEGIN 
+						RAISERROR('El usuario no esta activo.',16,1)
+						RETURN
+						END
+
+				SELECT @empleado_id = id_empleado FROM empleados WHERE usuario_id = @usuario_id
+					
+				IF @empleado_id IS NULL
+					BEGIN
+						RAISERROR('El usuario no esta como empleado',16, 1)
+							RETURN
+							END
+				
+				INSERT INTO asistencias_empleados (fecha,hora,empleado_id)
+				VALUES (GETDATE(), CAST(GETDATE()AS TIME), @empleado_id)
+				END
+							
 
 GO
 
-CREATE or ALTER PROCEDURE sp_ReporteParametrizadoClientes 
+
+
+EXEC sp_AgregarAsistenciasEmpleados '28042125'
+SELECT * FROM asistencias_empleados ORDER BY fecha DESC
+SELECT id_usuario, estado FROM usuarios WHERE dni = '45905927'
+
+go
+
+CREATE or ALTER PROCEDURE sp_ReporteParametrizadoCliente
 
     @nombre NVARCHAR(50) = NULL,
     @apellido NVARCHAR(50) = NULL,
@@ -174,5 +203,7 @@ BEGIN
              ) THEN 1 ELSE 0 END)
       )
 END
+
+go
 
 --probar
