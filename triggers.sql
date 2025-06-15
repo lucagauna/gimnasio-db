@@ -225,6 +225,21 @@ CREATE OR ALTER TRIGGER tr_AsistenciasEmpleados ON asistencias_empleados
 GO
 
 
+CREATE OR ALTER TRIGGER tr_ModificarEmpleado ON empleados
+INSTEAD OF UPDATE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM empleados WHERE usuario_id IN (SELECT usuario_id FROM inserted))
+    BEGIN
+        RAISERROR('El usuario que deseas modificar ya está en la tabla.', 16, 1)
+        RETURN
+    END
+
+    UPDATE c SET c.usuario_id = i.usuario_id, c.nombre = i.nombre, c.apellido = i.apellido, c.fecha_de_inicio = i.fecha_de_inicio, c.id_cargo = i.id_cargo
+    FROM empleados c JOIN inserted i ON c.id_empleado = i.id_empleado
+	END
+
+
 
 SELECT * FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = '45905927'))
 
