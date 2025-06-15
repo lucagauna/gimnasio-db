@@ -79,7 +79,7 @@ go
 
 CREATE VIEW vw_HistorialPagosCliente AS
 SELECT
-    c.id_cliente,
+    c.id_cliente,												-- Pagos Clientes.
     u.dni,
     c.nombre,
     c.apellido,
@@ -91,3 +91,5 @@ SELECT
 FROM clientes c
 JOIN pagos p ON c.id_cliente = p.cliente_id
 JOIN usuarios u ON c.usuario_id = u.id_usuario;
+
+

@@ -213,7 +213,10 @@ CREATE OR ALTER TRIGGER tr_AsistenciasEmpleados ON asistencias_empleados
 					SELECT fecha, hora, empleado_id FROM inserted
 					COMMIT
 					END
-					GO
+
+
+
+		GO
 
 	CREATE OR ALTER TRIGGER tr_EliminarEmpleado ON empleados
 	INSTEAD OF DELETE AS
@@ -231,7 +234,7 @@ AS
 BEGIN
     IF EXISTS (SELECT 1 FROM empleados WHERE usuario_id IN (SELECT usuario_id FROM inserted))
     BEGIN
-        RAISERROR('El usuario que deseas modificar ya está en la tabla.', 16, 1)
+        RAISERROR('El ID de Usuario ya tiene datos asignados.', 16, 1)
         RETURN
     END
 
@@ -240,8 +243,6 @@ BEGIN
 	END
 
 
-
-SELECT * FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = '45905927'))
 
 
 GO
