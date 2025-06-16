@@ -85,7 +85,7 @@ CREATE OR ALTER TRIGGER tr_ModificarClientes ON clientes
 INSTEAD OF UPDATE
 AS
 BEGIN
-    IF EXISTS (SELECT 1 FROM clientes WHERE usuario_id IN (SELECT usuario_id FROM inserted))
+    IF EXISTS (SELECT 1 FROM inserted i  JOIN clientes c ON i.usuario_id = c.usuario_id  WHERE c.id_cliente <> i.id_cliente)
     BEGIN
         RAISERROR('El usuario que deseas modificar ya está en la tabla.', 16, 1)
         RETURN
@@ -232,7 +232,7 @@ CREATE OR ALTER TRIGGER tr_ModificarEmpleado ON empleados
 INSTEAD OF UPDATE
 AS
 BEGIN
-    IF EXISTS (SELECT 1 FROM empleados WHERE usuario_id IN (SELECT usuario_id FROM inserted))
+    IF EXISTS (SELECT 1 FROM inserted i JOIN empleados e ON i.usuario_id = e.usuario_id  WHERE e.id_empleado <> i.id_empleado)
     BEGIN
         RAISERROR('El ID de Usuario ya tiene datos asignados.', 16, 1)
         RETURN
