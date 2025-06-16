@@ -122,7 +122,7 @@ GO
 CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @cliente_id int
-		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = '46286380')) AND estado = 1) 
+		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)) AND estado = 1) 
 		BEGIN
 			SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 			INSERT INTO asistencias_clientes (fecha, hora, cliente_id)
@@ -214,5 +214,3 @@ BEGIN
 END
 
 go
-
---probar

@@ -135,6 +135,7 @@ Permiten consultas simplificadas y reportes:
   - `Procedures.sql` – procedimientos almacenados.
   - `Triggers.sql` – validaciones automáticas.
   - `Vistas.sql` – vistas para consultas y reportes.
+  - `Datos.sql` - insercion de datos en el sistema. 
 
 ---
 

@@ -37,15 +37,15 @@ VALUES
 
 -- 7. Asignar cuotas a clientes
 EXEC sp_AgregarCuotas 'Mensual Básica', '40111222';
-EXEC sp_AgregarCuotas 'Mensual Básica', '45905927';
+EXEC sp_AgregarCuotas 'Mensual Básica', '45900927';
 
 -- 8. Pagos de cuotas
 EXEC sp_AgregarPagos 15000, 'Efectivo', '40111222', 'Mensual Básica';  -- Pago completo
-EXEC sp_AgregarPagos 5000, 'Débito', '45905927', 'Mensual Básica';     -- Pago parcial
+EXEC sp_AgregarPagos 5000, 'Débito', '45900927', 'Mensual Básica';     -- Pago parcial
 
 -- 9. Registrar asistencias
 EXEC sp_AgregarAsistenciaCliente '40111222';    -- Debería funcionar
-EXEC sp_AgregarAsistenciaCliente '45905927';    -- Debería rechazar: cuota no paga
+EXEC sp_AgregarAsistenciaCliente '45900927';    -- Debería rechazar: cuota no paga
 
 EXEC sp_AgregarAsistenciasEmpleados '28042125'; -- Asistencia de empleado
 SELECT * FROM asistencias_empleados
