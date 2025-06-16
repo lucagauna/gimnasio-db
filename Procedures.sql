@@ -82,9 +82,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCH
 		DECLARE @cliente_id int
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 		DECLARE @cuota_id int
-		SET @cuota_id = (SELECT id_cuota FROM cuotas c
-							INNER JOIN clientes cl ON cl.id_cliente = @cliente_id
-								INNER JOIN tipo_cuota t ON t.descripcion = @nombre_cuota)
+		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE cliente_id = @cliente_id AND id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota))
 		DECLARE @pagado BIT
 		DECLARE @debe MONEY
 		SET @debe = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota) - @monto_pagado

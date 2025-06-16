@@ -13,7 +13,7 @@ GO
 -- Tabla: Roles
 CREATE TABLE roles (
     id_rol int IDENTITY(1,1) PRIMARY KEY,
-	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente'))
+	nombre_rol varchar(50) NOT NULL CHECK (nombre_rol IN ('owner','empleado','cliente')) UNIQUE
 );
 
 -- Tabla: Usuarios
@@ -41,7 +41,7 @@ CREATE TABLE clientes (
 -- Tabla: tipo_cuota
 CREATE TABLE tipo_cuota (
     id_tipo_cuota INT IDENTITY(1,1) PRIMARY KEY,
-    descripcion VARCHAR(100) NOT NULL,
+    descripcion VARCHAR(100) NOT NULL UNIQUE,
     monto_total MONEY NOT NULL,
     duracion INT NOT NULL
 );
@@ -66,7 +66,7 @@ CREATE TABLE pagos (
     medio_pago VARCHAR(50),
     pagado BIT NOT NULL,
     debe MONEY NOT NULL,
-    cliente_id INT NOT NULL, --SACAR cliente_id
+    cliente_id INT NOT NULL,
     cuota_id INT NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id_cliente),
     FOREIGN KEY (cuota_id) REFERENCES cuotas(id_cuota)
@@ -84,7 +84,7 @@ CREATE TABLE asistencias_clientes (
 -- Tabla: cargos
 CREATE TABLE cargos (
     id_cargo INT IDENTITY(1,1) PRIMARY KEY,
-    descripcion VARCHAR(100) NOT NULL,
+    descripcion VARCHAR(100) NOT NULL UNIQUE,
     remuneracion MONEY NOT NULL
 );
 

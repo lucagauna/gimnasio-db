@@ -139,7 +139,7 @@ CREATE OR ALTER TRIGGER tr_AgregarPagos ON pagos
 	INSTEAD OF INSERT AS
 	BEGIN
 		BEGIN TRANSACTION
-		IF ((SELECT estado FROM cuotas WHERE id_cuota = (SELECT cuota_id FROM inserted)) = 1) -- Si paga la cuota  a medias ya la toma como pagada y no entra.
+		IF ((SELECT estado FROM cuotas WHERE id_cuota = (SELECT cuota_id FROM inserted)) = 1)
 		BEGIN
 			RAISERROR('Cliente ya pago la cuota...', 16, 1)
 			ROLLBACK TRANSACTION
@@ -228,7 +228,7 @@ CREATE OR ALTER TRIGGER tr_AsistenciasEmpleados ON asistencias_empleados
 				AS 
 				BEGIN 
 				BEGIN TRANSACTION 
-					IF EXISTS (SELECT 1 FROM inserted i LEFT JOIN empleados e ON i.empleado_id = e.id_empleado LEFT JOIN usuarios u ON e.usuario_id = u.id_usuario WHERE e.id_empleado IS NULL OR u.estado <> 1) --Falta agregar validacion de estado
+					IF EXISTS (SELECT 1 FROM inserted i LEFT JOIN empleados e ON i.empleado_id = e.id_empleado LEFT JOIN usuarios u ON e.usuario_id = u.id_usuario WHERE e.id_empleado IS NULL OR u.estado <> 1)
 
 					BEGIN 
 					RAISERROR('El empleado no existe.', 16, 1)
@@ -268,7 +268,7 @@ CREATE OR ALTER TRIGGER tr_AgregarEmpleado ON empleados
 			RETURN
 		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = (SELECT usuario_id FROM inserted) AND estado = 1)
 		BEGIN
-			--RAISERROR('El usuario ingresado no es un Empleado...', 16, 1)
+			RAISERROR('El usuario ingresado no es un Empleado...', 16, 1)
 			ROLLBACK
 			RETURN
 		END ELSE

@@ -48,11 +48,12 @@ EXEC sp_AgregarAsistenciaCliente '40111222';    -- Debería funcionar
 EXEC sp_AgregarAsistenciaCliente '45905927';    -- Debería rechazar: cuota no paga
 
 EXEC sp_AgregarAsistenciasEmpleados '28042125'; -- Asistencia de empleado
+SELECT * FROM asistencias_empleados
 
 -- 10. Validar vencimiento de cuotas
-EXEC sp_ValidarCuotas;
 SELECT * FROM cuotas
 UPDATE cuotas SET fecha_vencimiento = GETDATE()
+EXEC sp_ValidarCuotas;
 SELECT * FROM cuotas
 
 -- 11. Ejemplo de reporte parametrizado
