@@ -91,6 +91,12 @@ BEGIN
         RETURN
     END
 
+	IF EXISTS (SELECT 1 FROM inserted WHERE edad < 1 OR edad > 100 )
+    BEGIN
+        RAISERROR('La fecha de nacimiento ingresada es incoherente.', 16, 1);
+        RETURN;
+    END
+
     UPDATE c SET c.usuario_id = i.usuario_id, c.nombre = i.nombre, c.apellido = i.apellido, c.fecha_nacimiento = i.fecha_nacimiento, c.edad = i.edad
     FROM clientes c JOIN inserted i ON c.id_cliente = i.id_cliente
 END
@@ -253,9 +259,7 @@ CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
 	BEGIN
 		
 
-    IF EXISTS (
-        SELECT 1 FROM inserted WHERE edad < 1 OR edad > 100
-    )
+    IF EXISTS (SELECT 1 FROM inserted WHERE edad < 1 OR edad > 100 )
     BEGIN
         RAISERROR('La fecha de nacimiento ingresada es incoherente.', 16, 1);
         RETURN;
