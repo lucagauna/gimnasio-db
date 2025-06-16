@@ -12,6 +12,23 @@ CREATE PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseña CHAR(64), @rol_
 
 GO
 
+CREATE OR ALTER PROCEDURE sp_ActivarUsuario (@dni VARCHAR(20)) AS
+	BEGIN
+		IF EXISTS(SELECT 1 FROM usuarios WHERE dni = @dni AND estado = 0)
+		BEGIN
+			UPDATE usuarios SET estado = 1
+				WHERE dni = @dni
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE dni = @dni AND estado = 1)
+		BEGIN
+			RAISERROR('El usuario ya se encuentra activo...', 16, 1)
+			RETURN
+		END
+		RAISERROR('El usuario no existe...', 16, 1)
+	END
+
+GO
+
 CREATE PROCEDURE sp_AgregarCliente(@dni VARCHAR(20), @nombre VARCHAR(100), @apellido VARCHAR(100), @fecha_nacimiento DATE, @direccion VARCHAR(255)) AS
 	BEGIN
 		DECLARE @usuario_id INT
@@ -38,10 +55,10 @@ CREATE PROCEDURE sp_AgregarEmpleado(@nombre VARCHAR(100), @apellido VARCHAR(100)
 
 GO
 
-CREATE PROCEDURE sp_AgregarTipoCuota (@descripcion VARCHAR(100), @monto_total MONEY) AS
+CREATE PROCEDURE sp_AgregarTipoCuota (@descripcion VARCHAR(100), @monto_total MONEY, @duracion INT) AS
 	BEGIN
-		INSERT INTO tipo_cuota (descripcion, monto_total)
-			VALUES (@descripcion, @monto_total)
+		INSERT INTO tipo_cuota (descripcion, monto_total, duracion)
+			VALUES (@descripcion, @monto_total, @duracion)
 	END
 
 GO
@@ -60,12 +77,14 @@ CREATE PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) 
 
 GO
 
-CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
+CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
 	BEGIN
 		DECLARE @cliente_id int
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 		DECLARE @cuota_id int
-		SET @cuota_id = (SELECT id_cuota FROM cuotas WHERE id_tipo_cuota = (SELECT id_tipo_cuota FROM tipo_cuota WHERE descripcion = @nombre_cuota) AND cliente_id = @cliente_id)
+		SET @cuota_id = (SELECT id_cuota FROM cuotas c
+							INNER JOIN clientes cl ON cl.id_cliente = @cliente_id
+								INNER JOIN tipo_cuota t ON t.descripcion = @nombre_cuota)
 		DECLARE @pagado BIT
 		DECLARE @debe MONEY
 		SET @debe = (SELECT monto_total FROM tipo_cuota WHERE descripcion = @nombre_cuota) - @monto_pagado
@@ -105,7 +124,7 @@ GO
 CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @cliente_id int
-		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni)) AND estado = 1) 
+		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = '46286380')) AND estado = 1) 
 		BEGIN
 			SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
 			INSERT INTO asistencias_clientes (fecha, hora, cliente_id)

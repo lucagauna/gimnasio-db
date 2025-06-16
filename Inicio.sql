@@ -66,7 +66,7 @@ CREATE TABLE pagos (
     medio_pago VARCHAR(50),
     pagado BIT NOT NULL,
     debe MONEY NOT NULL,
-    cliente_id INT NOT NULL,
+    cliente_id INT NOT NULL, --SACAR cliente_id
     cuota_id INT NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id_cliente),
     FOREIGN KEY (cuota_id) REFERENCES cuotas(id_cuota)

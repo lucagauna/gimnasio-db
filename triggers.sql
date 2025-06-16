@@ -23,32 +23,6 @@ CREATE OR ALTER TRIGGER tr_EliminarUsuario ON usuarios
 
 GO
 
-CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
-	INSTEAD OF INSERT AS
-	BEGIN
-		IF EXISTS (SELECT 1 FROM clientes WHERE usuario_id IN (SELECT usuario_id FROM inserted))
-		BEGIN
-			RAISERROR('El usuario ingresado ya es un cliente...', 16, 1)
-			RETURN
-		END
-		IF EXISTS (SELECT 1 FROM usuarios WHERE dni IN (SELECT dni FROM inserted) AND rol_id IN (SELECT id_rol FROM roles WHERE nombre_rol = 'Cliente')) 
-		BEGIN
-			INSERT INTO clientes (usuario_id,nombre, apellido, fecha_nacimiento, edad, direccion)
-				SELECT usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion FROM inserted
-		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE dni IN (SELECT dni FROM inserted))
-		BEGIN
-			RAISERROR('El usuario ingresado no es un cliente...', 16, 1)
-		END ELSE
-		BEGIN
-			RAISERROR('El usuario ingresado no existe...', 16, 1)
-		END
-	END
-
-GO
-
-
-
-
 CREATE OR ALTER TRIGGER tr_EliminarCliente ON clientes
 	INSTEAD OF DELETE AS
 	BEGIN
@@ -58,26 +32,33 @@ CREATE OR ALTER TRIGGER tr_EliminarCliente ON clientes
 
 GO
 
-
-
- CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
+CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
 	INSTEAD OF INSERT AS
 	BEGIN
+		IF ((SELECT edad FROM inserted) < 1 OR (SELECT edad FROM inserted) > 100)
+		BEGIN
+			RAISERROR('La fecha de nacimiento ingresada es incoherente.', 16, 1)
+			RETURN
+		END
 		IF EXISTS (SELECT 1 FROM clientes WHERE usuario_id IN (SELECT usuario_id FROM inserted))
 		BEGIN
 			RAISERROR('El usuario ingresado ya está registrado como cliente.', 16, 1)
 			RETURN
 		END
-		IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario IN (SELECT usuario_id FROM inserted) AND rol_id IN (SELECT id_rol FROM roles WHERE nombre_rol = 'cliente'))
+		IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario IN (SELECT usuario_id FROM inserted) AND rol_id IN (SELECT id_rol FROM roles WHERE nombre_rol = 'cliente') AND estado = 1)
 		BEGIN
 			INSERT INTO clientes (usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion) SELECT usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion FROM inserted
-		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario IN (SELECT usuario_id FROM inserted))
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario IN (SELECT usuario_id FROM inserted) AND estado = 1)
 		BEGIN
 			RAISERROR('El usuario ingresado no tiene el rol de cliente.', 16, 1)
-		END ELSE
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario IN (SELECT usuario_id FROM inserted))
 		BEGIN
-			RAISERROR('El usuario ingresado no existe.', 16, 1)
+			RAISERROR('El usuario ingresado no esta activo en el sistema.', 16, 1)
+			RETURN
 		END
+		RAISERROR('El usuario ingresado no existe.', 16, 1)
 	END
 
 GO
@@ -100,8 +81,6 @@ BEGIN
     UPDATE c SET c.usuario_id = i.usuario_id, c.nombre = i.nombre, c.apellido = i.apellido, c.fecha_nacimiento = i.fecha_nacimiento, c.edad = i.edad
     FROM clientes c JOIN inserted i ON c.id_cliente = i.id_cliente
 END
-
-
 		
 
 GO
@@ -114,17 +93,35 @@ CREATE OR ALTER TRIGGER tr_AgregarCuotas ON cuotas
 			RAISERROR('Cliente ya tiene una cuota activa...', 16, 1)
 			RETURN
 		END
-		IF EXISTS (SELECT 1 FROM clientes WHERE id_cliente IN (SELECT cliente_id FROM inserted)) AND EXISTS (SELECT 1 FROM tipo_cuota WHERE id_tipo_cuota IN (SELECT id_tipo_cuota FROM inserted))
+		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id IN (SELECT cliente_id FROM inserted) AND id_tipo_cuota = (SELECT id_tipo_cuota FROM inserted))
+			BEGIN
+				RAISERROR('Cliente ya tiene esa cuota en el sistema...', 16, 1)
+				RETURN
+			END
+		IF EXISTS (SELECT 1 FROM inserted i
+						INNER JOIN clientes c ON i.cliente_id = c.id_cliente
+							INNER JOIN tipo_cuota tc ON i.id_tipo_cuota = tc.id_tipo_cuota
+								INNER JOIN usuarios u ON c.usuario_id = u.id_usuario
+									WHERE u.estado = 1) 
 		BEGIN
 			INSERT INTO cuotas (id_tipo_cuota, fecha_inicio, fecha_vencimiento, estado, cliente_id)
 				SELECT id_tipo_cuota, fecha_inicio, fecha_vencimiento, estado, cliente_id FROM inserted
-		END ELSE IF EXISTS (SELECT 1 FROM clientes WHERE id_cliente IN (SELECT cliente_id FROM inserted)) 
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM inserted i
+								INNER JOIN clientes c ON i.cliente_id = c.id_cliente
+										INNER JOIN usuarios u ON c.usuario_id = u.id_usuario
+											WHERE u.estado = 1)
 		BEGIN
 			RAISERROR('La cuota ingresada no existe...', 16, 1)
-		END ELSE
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM inserted i
+								INNER JOIN clientes c ON i.cliente_id = c.id_cliente
+										INNER JOIN usuarios u ON c.usuario_id = u.id_usuario)
 		BEGIN
-			RAISERROR('El cliente ingresado no existe...', 16, 1)
+			RAISERROR('El cliente no esta activo en el sistema...', 16, 1)
+			RETURN
 		END
+		RAISERROR('El cliente ingresado no existe...', 16, 1)
 	END
 
 GO
@@ -139,30 +136,49 @@ CREATE OR ALTER TRIGGER tr_EliminarCuotas ON cuotas
 GO
 
 CREATE OR ALTER TRIGGER tr_AgregarPagos ON pagos
-	AFTER INSERT AS
+	INSTEAD OF INSERT AS
 	BEGIN
+		BEGIN TRANSACTION
 		IF ((SELECT estado FROM cuotas WHERE id_cuota = (SELECT cuota_id FROM inserted)) = 1)
 		BEGIN
 			RAISERROR('Cliente ya pago la cuota...', 16, 1)
 			ROLLBACK TRANSACTION
 			RETURN
 		END
-		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id IN (SELECT cliente_id FROM inserted) AND id_cuota IN (SELECT cuota_id FROM inserted))
+		IF EXISTS (SELECT 1 FROM inserted i
+						INNER JOIN cuotas C ON i.cuota_id = c.id_cuota
+							INNER JOIN clientes CL ON CL.id_cliente = i.cliente_id
+								INNER JOIN usuarios U ON CL.usuario_id = U.id_usuario
+									WHERE u.estado = 1)
 		BEGIN
 			IF ((SELECT pagado FROM inserted) = 1)
 			BEGIN
 				UPDATE cuotas SET estado = 1
 					WHERE id_cuota = (SELECT cuota_id FROM inserted)
 			END
-		END ELSE IF EXISTS (SELECT 1 FROM clientes WHERE id_cliente IN (SELECT cliente_id FROM inserted))
+			INSERT INTO pagos (fecha_pago, monto_pagado, medio_pago, pagado, debe, cliente_id, cuota_id)
+				SELECT fecha_pago, monto_pagado, medio_pago, pagado, debe, cliente_id, cuota_id FROM inserted
+			COMMIT
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM inserted i
+								INNER JOIN clientes CL ON CL.id_cliente = i.cliente_id
+									INNER JOIN usuarios U ON CL.usuario_id = U.id_usuario
+											WHERE u.estado = 1)
 		BEGIN 
 			RAISERROR('No existe cliente con una cuota ingresada...', 16, 1)
 			ROLLBACK TRANSACTION
-		END ELSE
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM inserted i
+								INNER JOIN clientes CL ON CL.id_cliente = i.cliente_id
+									INNER JOIN usuarios U ON CL.usuario_id = U.id_usuario
+										WHERE u.estado = 0)
 		BEGIN
-			RAISERROR('No existe cliente ingresado...', 16, 1)
+			RAISERROR('El cliente no se encuentra activo en el sistema...', 16, 1)
 			ROLLBACK TRANSACTION
+			RETURN
 		END
+		RAISERROR('No existe cliente ingresado...', 16, 1)
+		ROLLBACK TRANSACTION
 	END
 
 GO
@@ -184,9 +200,11 @@ CREATE OR ALTER TRIGGER tr_AsistenciasClientes ON asistencias_clientes
 		AS
 			BEGIN
 			BEGIN TRANSACTION
-			IF EXISTS (SELECT 1 FROM inserted i LEFT JOIN cuotas c ON i.cliente_id = c.cliente_id AND c.estado = 1 WHERE c.cliente_id IS NULL)
-
-
+			IF EXISTS (SELECT 1 FROM inserted i 
+						LEFT JOIN cuotas c ON i.cliente_id = c.cliente_id AND c.estado = 1 
+							LEFT JOIN clientes CL ON CL.id_cliente = i.cliente_id 
+								LEFT JOIN usuarios U ON U.id_usuario = CL.usuario_id 
+									WHERE c.cliente_id IS NULL AND u.estado = 1)
 			BEGIN
 				RAISERROR('El cliente no tiene una cuota activa o no existe.', 16, 1)
 				ROLLBACK
@@ -200,6 +218,14 @@ CREATE OR ALTER TRIGGER tr_AsistenciasClientes ON asistencias_clientes
 		COMMIT
 		END
 
+	SELECT * FROM clientes
+	SELECT * FROM tipo_cuota
+	SELECT * FROM pagos
+	SELECT * FROM cuotas
+	EXEC sp_AgregarPagos 50, 'EFECTIVO', '466286380', 'Mensual'
+
+	EXEC sp_AgregarAsistenciaCliente '4628680'
+
 		GO
 
 CREATE OR ALTER TRIGGER tr_AsistenciasEmpleados ON asistencias_empleados
@@ -207,7 +233,7 @@ CREATE OR ALTER TRIGGER tr_AsistenciasEmpleados ON asistencias_empleados
 				AS 
 				BEGIN 
 				BEGIN TRANSACTION 
-					IF EXISTS (SELECT 1 FROM inserted i LEFT JOIN empleados e ON i.empleado_id = e.id_empleado WHERE e.id_empleado IS NULL)
+					IF EXISTS (SELECT 1 FROM inserted i LEFT JOIN empleados e ON i.empleado_id = e.id_empleado WHERE e.id_empleado IS NULL) --Falta agregar validacion de estado
 
 					BEGIN 
 					RAISERROR('El empleado no existe.', 16, 1)
@@ -223,6 +249,42 @@ CREATE OR ALTER TRIGGER tr_AsistenciasEmpleados ON asistencias_empleados
 
 
 		GO
+
+CREATE OR ALTER TRIGGER tr_AgregarEmpleado ON empleados
+	INSTEAD OF INSERT AS
+	BEGIN
+		BEGIN TRANSACTION
+		IF EXISTS(SELECT 1 FROM empleados WHERE id_empleado = (SELECT id_empleado FROM inserted))
+		BEGIN
+			RAISERROR('El empleado ya esta ingresado...', 16, 1)
+			ROLLBACK
+			RETURN;
+		END
+		IF EXISTS(SELECT 1 FROM usuarios WHERE id_usuario = (SELECT usuario_id FROM inserted) AND rol_id = (SELECT id_rol FROM roles WHERE nombre_rol = 'Empleado') AND estado = 1)
+		BEGIN
+			INSERT INTO empleados (usuario_id, nombre, apellido, fecha_de_inicio, id_cargo)
+				SELECT usuario_id, nombre, apellido, fecha_de_inicio, id_cargo FROM inserted
+			COMMIT
+			RETURN;
+		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = (SELECT usuario_id FROM inserted) AND rol_id = (SELECT id_rol FROM roles WHERE nombre_rol = 'Empleado'))
+		BEGIN
+			RAISERROR('El empleado no se encuentra activo en el sistema...', 16, 1)
+			ROLLBACK
+			RETURN
+		END ELSE IF EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = (SELECT usuario_id FROM inserted) AND estado = 1)
+		BEGIN
+			--RAISERROR('El usuario ingresado no es un Empleado...', 16, 1)
+			ROLLBACK
+			RETURN
+		END ELSE
+		BEGIN
+			RAISERROR('El usuario ingresado no existe en el sistema...', 16, 1)
+			ROLLBACK
+			RETURN
+		END
+	END
+
+GO
 
 	CREATE OR ALTER TRIGGER tr_EliminarEmpleado ON empleados
 	INSTEAD OF DELETE AS
@@ -252,46 +314,6 @@ BEGIN
 
 
 GO
-
-
-CREATE OR ALTER TRIGGER tr_AgregarCliente ON clientes
-	INSTEAD OF INSERT AS
-	BEGIN
-		
-
-    IF EXISTS (SELECT 1 FROM inserted WHERE edad < 1 OR edad > 100 )
-    BEGIN
-        RAISERROR('La fecha de nacimiento ingresada es incoherente.', 16, 1);
-        RETURN;
-    END
-
-   
-    IF EXISTS ( SELECT 1 FROM inserted i JOIN clientes c ON i.usuario_id = c.usuario_id)
-    BEGIN
-        RAISERROR('El usuario ingresado ya está registrado como cliente', 16, 1);
-        RETURN;
-    END
-
-   
-    IF EXISTS (SELECT 1 FROM inserted i WHERE NOT EXISTS (SELECT 1 FROM usuarios u WHERE u.id_usuario = i.usuario_id) )
-    BEGIN
-        RAISERROR('El usuario no existe.', 16, 1);
-        RETURN;
-    END
-
-   
-    IF EXISTS (SELECT 1 FROM inserted i  JOIN usuarios u ON i.usuario_id = u.id_usuario WHERE u.rol_id NOT IN (SELECT id_rol FROM roles WHERE nombre_rol = 'cliente') )
- 
-  
-    BEGIN
-        RAISERROR('El usuario no tiene el rol de cliente', 16, 1);
-        RETURN;
-    END
-
-	INSERT INTO clientes (usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion)
-   		SELECT usuario_id, nombre, apellido, fecha_nacimiento, edad, direccion
-   			FROM inserted;
-END;
 
 
 			

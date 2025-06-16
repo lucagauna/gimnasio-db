@@ -51,6 +51,9 @@ EXEC sp_AgregarAsistenciasEmpleados '28042125'; -- Asistencia de empleado
 
 -- 10. Validar vencimiento de cuotas
 EXEC sp_ValidarCuotas;
+SELECT * FROM cuotas
+UPDATE cuotas SET fecha_vencimiento = GETDATE()
+SELECT * FROM cuotas
 
 -- 11. Ejemplo de reporte parametrizado
 EXEC sp_ReporteParametrizadoCliente @edad_min = 20, @edad_max = 35;
