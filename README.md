@@ -152,7 +152,7 @@ Permiten consultas simplificadas y reportes:
 
 - **Luca Gauna**
 - **Facundo Cuello**
-- **Tomás Vudi**
+
 
 Desarrollado como parte del Trabajo Práctico Integrador – UTN General Pacheco.
 
