@@ -12,7 +12,7 @@ CREATE PROCEDURE sp_AgregarUsuario(@dni VARCHAR(20), @contraseña CHAR(64), @rol_
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_ActivarUsuario (@dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_ActivarUsuario (@dni VARCHAR(20)) AS
 	BEGIN
 		IF EXISTS(SELECT 1 FROM usuarios WHERE dni = @dni AND estado = 0)
 		BEGIN
@@ -77,7 +77,7 @@ CREATE PROCEDURE sp_AgregarCuotas(@nombre_cuota VARCHAR(100), @dni VARCHAR(20)) 
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
+CREATE PROCEDURE sp_AgregarPagos(@monto_pagado MONEY, @medio_pago VARCHAR(50), @dni VARCHAR(20), @nombre_cuota VARCHAR(100)) AS
 	BEGIN
 		DECLARE @cliente_id int
 		SET @cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = @dni))
@@ -119,7 +119,7 @@ CREATE PROCEDURE sp_AgregarCargos (@descripcion VARCHAR(100), @remuneracion MONE
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarAsistenciaCliente (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @cliente_id int
 		IF EXISTS (SELECT 1 FROM cuotas WHERE cliente_id = (SELECT id_cliente FROM clientes WHERE usuario_id = (SELECT id_usuario FROM usuarios WHERE dni = '46286380')) AND estado = 1) 
@@ -148,7 +148,7 @@ CREATE PROCEDURE sp_ValidarCuotas AS
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
+CREATE PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 	BEGIN
 		DECLARE @empleado_id INT
 		DECLARE @estado INT
@@ -181,15 +181,7 @@ CREATE OR ALTER PROCEDURE sp_AgregarAsistenciasEmpleados (@dni VARCHAR(20)) AS
 
 GO
 
-
-
-EXEC sp_AgregarAsistenciasEmpleados '28042125'
-SELECT * FROM asistencias_empleados ORDER BY fecha DESC
-SELECT id_usuario, estado FROM usuarios WHERE dni = '45905927'
-
-go
-
-CREATE or ALTER PROCEDURE sp_ReporteParametrizadoCliente
+CREATE  PROCEDURE sp_ReporteParametrizadoCliente
 
     @nombre NVARCHAR(50) = NULL,
     @apellido NVARCHAR(50) = NULL,
