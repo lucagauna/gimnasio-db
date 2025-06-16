@@ -37,7 +37,8 @@ s
 ## 🧩 Modelo Entidad-Relación (DER)
 
 
-![Bdd Gym](https://github.com/user-attachments/assets/43b0b883-5670-4cb4-8281-4e84cfde4ebc)
+![Bdd Gym (2)](https://github.com/user-attachments/assets/8754c730-722b-4990-a548-8a5da8522d8e)
+
 
 
 ---
